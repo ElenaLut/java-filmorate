@@ -15,12 +15,12 @@ import java.util.HashMap;
 @RequestMapping("/films")
 public class FilmController {
     private HashMap<Integer, Film> films = new HashMap<>();
-    private final LocalDate releaseDate = LocalDate.of(1895, 12, 28);
+    private final LocalDate RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
     @PostMapping
-    public Film addFilm(@RequestBody Film film) throws ValidationException {
+    public Film addFilm(@RequestBody Film film) {
         if (films.containsKey(film.getId())) {
-            System.out.println("Такой фильм уже есть");
+            throw new ValidationException("Такой фильм уже есть");
         } else {
             newFilmCheck(film);
             films.put(film.getId(), film);
@@ -30,14 +30,13 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) throws ValidationException {
-        if (films.containsKey(film.getId())) {
+    public Film updateFilm(@RequestBody Film film) {
+        if (!films.containsKey(film.getId())) {
+            throw new ValidationException("Такого фильма в списке нет");
+        }
             newFilmCheck(film);
             films.put(film.getId(), film);
-            log.info("{}", film);
-        } else {
-            System.out.println("Такого фильма в списке нет");
-        }
+            log.info("Фильм изменен: {}", film);
         return film;
     }
 
@@ -47,17 +46,21 @@ public class FilmController {
         return films.values();
     }
 
-    private void newFilmCheck(Film film) throws ValidationException {
-        if (film.getName().equals(null) || film.getName().isBlank()) {
+    private void newFilmCheck(Film film) {
+        if (film.getName() == null || film.getName().isBlank()) {
+            log.warn("название не может быть пустым.");
             throw new ValidationException("Название не может быть пустым");
         }
         if (film.getDescription().length() > 200) {
+            log.warn("Максимальная длина описания — 200 символов: {}", film.getDescription().length());
             throw new ValidationException("максимальная длина описания — 200 символов");
         }
-        if (film.getReleaseDate().isBefore(releaseDate)) {
+        if (film.getReleaseDate().isBefore(RELEASE_DATE)) {
+            log.warn("Дата релиза — не раньше 28 декабря 1895 года: {}", film.getReleaseDate());
             throw new ValidationException("дата релиза — не раньше 28 декабря 1895 года");
         }
         if (film.getDuration() <= 0) {
+            log.warn("Продолжительность фильма должна быть больше 0: {}", film.getDuration());
             throw new ValidationException("продолжительность фильма должна быть положительной.");
         }
     }

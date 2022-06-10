@@ -16,26 +16,25 @@ public class UserController {
     private HashMap<Integer, User> users = new HashMap<>();
 
     @PostMapping
-    public User addUser(@RequestBody User user) throws ValidationException {
+    public User addUser(@RequestBody User user) {
         if (users.containsKey(user.getId())) {
-            System.out.println("Такой пользователь уже есть");
-        } else {
+            throw new ValidationException("Такой пользователь уже есть");
+        }
             newUserCheck(user);
             users.put(user.getId(), user);
-            log.info("{}", user);
-        }
+            log.info("Пользователь создан: {}", user);
         return user;
     }
 
+
     @PutMapping
-    public User updateUser(@RequestBody User user) throws ValidationException {
-        if (users.containsKey(user.getId())) {
+    public User updateUser(@RequestBody User user) {
+        if (!users.containsKey(user.getId())) {
+            throw new ValidationException("Такого пользователя не существует");
+        }
             newUserCheck(user);
             users.put(user.getId(), user);
-            log.info("{}", user);
-        } else {
-            System.out.println("Такого пользователя не существует");
-        }
+            log.info("Пользователь изменен: {}", user);
         return user;
     }
 
@@ -45,17 +44,20 @@ public class UserController {
         return users.values();
     }
 
-    private void newUserCheck(User user) throws ValidationException {
-        if (user.getEmail().isBlank() || user.getEmail().equals(null) || !user.getEmail().contains("@")) {
+    private void newUserCheck(User user) {
+        if (user.getEmail().isBlank() || user.getEmail() == null || !user.getEmail().contains("@")) {
+            log.warn("Электронная почта не может быть пустой и должна содержать символ @, текущая: {}", user.getEmail());
             throw new ValidationException("электронная почта не может быть пустой и должна содержать символ @");
         }
-        if (user.getLogin().isBlank() || user.getLogin().equals(null) || user.getLogin().contains(" ")) {
+        if (user.getLogin().isBlank() || user.getLogin() == null || user.getLogin().contains(" ")) {
+            log.warn("Логин не может быть пустым и содержать пробелы, текущий: {}", user.getLogin());
             throw new ValidationException("логин не может быть пустым и содержать пробелы");
         }
-        if (user.getName().isBlank() || user.getName().equals(null)) {
+        if (user.getName().isBlank() || user.getName() == null) {
             user.setName(user.getLogin());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn("Дата рождения не может быть в будущем: {}", user.getBirthday());
             throw new ValidationException("дата рождения не может быть в будущем");
         }
     }
