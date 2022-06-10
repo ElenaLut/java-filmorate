@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.GeneratorId;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -16,12 +18,15 @@ import java.util.HashMap;
 public class FilmController {
     private HashMap<Integer, Film> films = new HashMap<>();
     private final LocalDate RELEASE_DATE = LocalDate.of(1895, 12, 28);
+    private GeneratorId countId = new GeneratorId();
 
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
-        if (films.containsKey(film.getId())) {
-            throw new ValidationException("Такой фильм уже есть");
+        log.info("Запрос на создание фильма {} отправлен", film);
+        if (films.containsKey(film.getId()) || checkName(film)) {
+            throw new ValidationException("Такой фильм уже существует");
         } else {
+            film.setId(countId.generate());
             newFilmCheck(film);
             films.put(film.getId(), film);
             log.info("{}", film);
@@ -31,6 +36,7 @@ public class FilmController {
 
     @PutMapping
     public Film updateFilm(@RequestBody Film film) {
+        log.info("Запрос на обновление фильма {} отправлен", film);
         if (!films.containsKey(film.getId())) {
             throw new ValidationException("Такого фильма в списке нет");
         }
@@ -44,6 +50,16 @@ public class FilmController {
     public Collection<Film> getAllFilms() {
         log.info("Всего фильмов на портале: {}", films.size());
         return films.values();
+    }
+
+    private boolean checkName(Film film) {
+        boolean nameInBase = false;
+        for (Film f : films.values()) {
+            if (film.getName().equals(f.getName())) {
+                nameInBase = true;
+            }
+        }
+        return nameInBase;
     }
 
     private void newFilmCheck(Film film) {

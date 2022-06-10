@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.GeneratorId;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -14,12 +15,15 @@ import java.util.HashMap;
 @RequestMapping("/users")
 public class UserController {
     private HashMap<Integer, User> users = new HashMap<>();
+    private GeneratorId countId = new GeneratorId();
 
     @PostMapping
     public User addUser(@RequestBody User user) {
-        if (users.containsKey(user.getId())) {
-            throw new ValidationException("Такой пользователь уже есть");
+        log.info("Запрос на создание пользователя {} отправлен", user);
+        if (users.containsKey(user.getId()) || checkEmail(user)) {
+            throw new ValidationException("Такой пользователь уже существует");
         }
+        user.setId(countId.generate());
             newUserCheck(user);
             users.put(user.getId(), user);
             log.info("Пользователь создан: {}", user);
@@ -29,10 +33,9 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@RequestBody User user) {
+        log.info("Запрос на обновление пользователя {} отправлен", user);
         if (!users.containsKey(user.getId())) {
-            if (users.get(user.getEmail()).getId() != user.getId()) {
-                throw new ValidationException("Такого пользователя не существует");
-            }
+            throw new ValidationException("Такого пользователя не существует");
         }
             newUserCheck(user);
             users.put(user.getId(), user);
@@ -44,6 +47,16 @@ public class UserController {
     public Collection<User> getAllUsers() {
         log.info("Всего пользователей на портале: {}", users.size());
         return users.values();
+    }
+
+    private boolean checkEmail(User user) {
+        boolean emailInBase = false;
+        for (User u : users.values()) {
+            if (user.getEmail().equals(u.getEmail())) {
+                emailInBase = true;
+            }
+        }
+        return emailInBase;
     }
 
     private void newUserCheck(User user) {
