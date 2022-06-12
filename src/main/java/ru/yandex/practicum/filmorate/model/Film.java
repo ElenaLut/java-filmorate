@@ -8,9 +8,9 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class Film {
-    private int id; //целочисленный идентификатор — id;
-    private String name; //название — name;
-    private String description; //описание — description;
-    private LocalDate releaseDate;//дата релиза — releaseDate;
-    private int duration; //продолжительность фильма — duration.
+    private int id;
+    private String name;
+    private String description;
+    private LocalDate releaseDate;
+    private int duration;
 }

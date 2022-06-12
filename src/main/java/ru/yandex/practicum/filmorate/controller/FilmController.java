@@ -5,32 +5,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.GeneratorId;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private HashMap<Integer, Film> films = new HashMap<>();
     private final LocalDate RELEASE_DATE = LocalDate.of(1895, 12, 28);
-    private GeneratorId countId = new GeneratorId();
+
+    private final Map<Integer, Film> films = new HashMap<>();
+    private GeneratorId generatorId = new GeneratorId();
 
     @PostMapping
     public Film addFilm(@RequestBody Film film) {
         log.info("Запрос на создание фильма {} отправлен", film);
-        if (films.containsKey(film.getId()) || checkName(film)) {
+        if (films.containsKey(film.getId())) {
             throw new ValidationException("Такой фильм уже существует");
-        } else {
-            film.setId(countId.generate());
-            newFilmCheck(film);
-            films.put(film.getId(), film);
-            log.info("{}", film);
         }
+        if (containsName(film) != null) {
+            Film oldFilm = containsName(film);
+            throw new ValidationException("Такой фильм уже существует под id " + oldFilm.getId());
+        }
+        film.setId(generatorId.generate());
+        validateNewFilm(film);
+        films.put(film.getId(), film);
+        log.info("Добавлен фильм: {}", film);
         return film;
     }
 
@@ -40,9 +44,9 @@ public class FilmController {
         if (!films.containsKey(film.getId())) {
             throw new ValidationException("Такого фильма в списке нет");
         }
-            newFilmCheck(film);
-            films.put(film.getId(), film);
-            log.info("Фильм изменен: {}", film);
+        validateNewFilm(film);
+        films.put(film.getId(), film);
+        log.info("Фильм изменен: {}", film);
         return film;
     }
 
@@ -52,31 +56,30 @@ public class FilmController {
         return films.values();
     }
 
-    private boolean checkName(Film film) {
-        boolean nameInBase = false;
+    private Film containsName(Film film) {
         for (Film f : films.values()) {
             if (film.getName().equals(f.getName())) {
-                nameInBase = true;
+                return f;
             }
         }
-        return nameInBase;
+        return null;
     }
 
-    private void newFilmCheck(Film film) {
+    private void validateNewFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
-            log.warn("название не может быть пустым.");
+            log.error("название не может быть пустым.");
             throw new ValidationException("Название не может быть пустым");
         }
         if (film.getDescription().length() > 200) {
-            log.warn("Максимальная длина описания — 200 символов: {}", film.getDescription().length());
+            log.error("Максимальная длина описания — 200 символов: {}", film.getDescription().length());
             throw new ValidationException("максимальная длина описания — 200 символов");
         }
         if (film.getReleaseDate().isBefore(RELEASE_DATE)) {
-            log.warn("Дата релиза — не раньше 28 декабря 1895 года: {}", film.getReleaseDate());
+            log.error("Дата релиза — не раньше 28 декабря 1895 года: {}", film.getReleaseDate());
             throw new ValidationException("дата релиза — не раньше 28 декабря 1895 года");
         }
         if (film.getDuration() <= 0) {
-            log.warn("Продолжительность фильма должна быть больше 0: {}", film.getDuration());
+            log.error("Продолжительность фильма должна быть больше 0: {}", film.getDuration());
             throw new ValidationException("продолжительность фильма должна быть положительной.");
         }
     }

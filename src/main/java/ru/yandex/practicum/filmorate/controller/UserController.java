@@ -9,24 +9,29 @@ import ru.yandex.practicum.filmorate.service.GeneratorId;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private HashMap<Integer, User> users = new HashMap<>();
-    private GeneratorId countId = new GeneratorId();
+    private final Map<Integer, User> users = new HashMap<>();
+    private GeneratorId generatorId = new GeneratorId();
 
     @PostMapping
     public User addUser(@RequestBody User user) {
         log.info("Запрос на создание пользователя {} отправлен", user);
-        if (users.containsKey(user.getId()) || checkEmail(user)) {
+        if (users.containsKey(user.getId())) {
             throw new ValidationException("Такой пользователь уже существует");
         }
-        user.setId(countId.generate());
-            newUserCheck(user);
-            users.put(user.getId(), user);
-            log.info("Пользователь создан: {}", user);
+        if (containsEmail(user) != null) {
+            User oldUser = containsEmail(user);
+            throw new ValidationException("Такой пользователь уже существует под id " + oldUser.getId());
+        }
+        user.setId(generatorId.generate());
+        validateNewUser(user);
+        users.put(user.getId(), user);
+        log.info("Пользователь создан: {}", user);
         return user;
     }
 
@@ -37,9 +42,9 @@ public class UserController {
         if (!users.containsKey(user.getId())) {
             throw new ValidationException("Такого пользователя не существует");
         }
-            newUserCheck(user);
-            users.put(user.getId(), user);
-            log.info("Пользователь изменен: {}", user);
+        validateNewUser(user);
+        users.put(user.getId(), user);
+        log.info("Пользователь изменен: {}", user);
         return user;
     }
 
@@ -49,30 +54,29 @@ public class UserController {
         return users.values();
     }
 
-    private boolean checkEmail(User user) {
-        boolean emailInBase = false;
+    private User containsEmail(User user) {
         for (User u : users.values()) {
             if (user.getEmail().equals(u.getEmail())) {
-                emailInBase = true;
+                return u;
             }
         }
-        return emailInBase;
+        return null;
     }
 
-    private void newUserCheck(User user) {
+    private void validateNewUser(User user) {
         if (user.getEmail().isBlank() || user.getEmail() == null || !user.getEmail().contains("@")) {
-            log.warn("Электронная почта не может быть пустой и должна содержать символ @, текущая: {}", user.getEmail());
+            log.error("Электронная почта не может быть пустой и должна содержать символ @, текущая: {}", user.getEmail());
             throw new ValidationException("электронная почта не может быть пустой и должна содержать символ @");
         }
         if (user.getLogin().isBlank() || user.getLogin() == null || user.getLogin().contains(" ")) {
-            log.warn("Логин не может быть пустым и содержать пробелы, текущий: {}", user.getLogin());
+            log.error("Логин не может быть пустым и содержать пробелы, текущий: {}", user.getLogin());
             throw new ValidationException("логин не может быть пустым и содержать пробелы");
         }
         if (user.getName().isBlank() || user.getName() == null) {
             user.setName(user.getLogin());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("Дата рождения не может быть в будущем: {}", user.getBirthday());
+            log.error("Дата рождения не может быть в будущем: {}", user.getBirthday());
             throw new ValidationException("дата рождения не может быть в будущем");
         }
     }
