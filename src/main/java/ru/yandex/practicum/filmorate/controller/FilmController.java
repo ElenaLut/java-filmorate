@@ -27,10 +27,7 @@ public class FilmController {
         if (films.containsKey(film.getId())) {
             throw new ValidationException("Такой фильм уже существует");
         }
-        if (containsName(film) != null) {
-            Film oldFilm = containsName(film);
-            throw new ValidationException("Такой фильм уже существует под id " + oldFilm.getId());
-        }
+        validateUniqName(film);
         film.setId(generatorId.generate());
         validateNewFilm(film);
         films.put(film.getId(), film);
@@ -56,13 +53,12 @@ public class FilmController {
         return films.values();
     }
 
-    private Film containsName(Film film) {
+    private void validateUniqName(Film film) {
         for (Film f : films.values()) {
             if (film.getName().equals(f.getName())) {
-                return f;
+                throw new ValidationException("Такой фильм уже существует под id " + f.getId());
             }
         }
-        return null;
     }
 
     private void validateNewFilm(Film film) {

@@ -24,10 +24,7 @@ public class UserController {
         if (users.containsKey(user.getId())) {
             throw new ValidationException("Такой пользователь уже существует");
         }
-        if (containsEmail(user) != null) {
-            User oldUser = containsEmail(user);
-            throw new ValidationException("Такой пользователь уже существует под id " + oldUser.getId());
-        }
+        validateUniqEmail(user);
         user.setId(generatorId.generate());
         validateNewUser(user);
         users.put(user.getId(), user);
@@ -54,13 +51,12 @@ public class UserController {
         return users.values();
     }
 
-    private User containsEmail(User user) {
+    private void validateUniqEmail(User user) {
         for (User u : users.values()) {
             if (user.getEmail().equals(u.getEmail())) {
-                return u;
+                throw new ValidationException("Такой пользователь уже существует под id " + u.getId());
             }
         }
-        return null;
     }
 
     private void validateNewUser(User user) {

@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class FiimorateApplicationTests {
-	
+
     @Test
     void userOkTest() throws ValidationException {
         UserController userController = new UserController();
