@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 public class GeneratorId {
-    private int id = 0;
+    private long id = 0;
 
-    public int generate() {
+    public long generate() {
         return ++id;
     }
 }
