@@ -9,9 +9,8 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,11 +42,12 @@ public class UserService {
 
     public List<User> getUserFriends(long id) {
         userStorage.validateUserId(id);
-        List<User> friends = new ArrayList<>();
-        for (long i : userStorage.getUsers().get(id).getFriends()) {
-            friends.add(userStorage.getUsers().get(i));
+        User user = userStorage.getUserById(id);
+        if (user == null) {
+            throw new ObjectNotFoundException("пользователь с id=" + id + " Не найден");
         }
-        return friends;
+        return user.getFriends().stream().map(friendId -> userStorage.getUserById(friendId))
+                .collect(Collectors.toList());
     }
 
     public void addInFriendList(long userFirstId, long userSecondId) {
@@ -99,18 +99,29 @@ public class UserService {
     public List<User> showCommonFriends(long userFirstId, long userSecondId) {
         log.info("Запрос общих друзей пользователей id={} и id={} направлен", userFirstId, userSecondId);
         User userFirst = userStorage.getUserById(userFirstId);
+        if (userFirst == null) {
+            throw new ObjectNotFoundException("пользователь с id=" + userFirstId + " Не найден");
+        }
         User userSecond = userStorage.getUserById(userSecondId);
-        userStorage.validateUserId(userFirstId);
+        if (userSecond == null) {
+            throw new ObjectNotFoundException("пользователь с id=" + userSecondId + " Не найден");
+        }
+        /*userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
         validateUsersIsNotFriends(userFirstId, userSecondId);
-        validateUsersIsNotFriends(userSecondId, userFirstId);
-        List<User> commonUser = new ArrayList<>();
-        for (User user : userStorage.getUsers().values()) {
-            if (userFirst.getFriends().contains(user.getId()) &
-                    userSecond.getFriends().contains(user.getId())) {
-                commonUser.add(user);
-            }
+        validateUsersIsNotFriends(userSecondId, userFirstId);*/
+        Set<Long> commonUser = new HashSet(userFirst.getFriends());
+        commonUser.retainAll(userSecond.getFriends());
+       /* List<User> friends = new ArrayList<>();
+        for (long i : commonUser) {
+            friends.add(userStorage.getUserById(i));
         }
-        return commonUser;
+        return friends;*/
+        return commonUser
+                .stream()
+                .map(userStorage.getUsers()::get)
+                .collect(Collectors.toList());
+       // return commonUser.stream().map(friendId -> userStorage.getUserById(friendId))
+          //      .collect(Collectors.toList());
     }
 }
