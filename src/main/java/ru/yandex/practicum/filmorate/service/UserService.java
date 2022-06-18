@@ -96,8 +96,7 @@ public class UserService {
         log.info("Пользователи id={} и id={} удалены из друзей", userFirstId, userSecondId);
     }
 
-    public List<User> showCommonFriends(long userFirstId, long userSecondId) {
-        log.info("Запрос общих друзей пользователей id={} и id={} направлен", userFirstId, userSecondId);
+    public List<User> showCommonFriends (Long userFirstId, Long userSecondId){
         User userFirst = userStorage.getUserById(userFirstId);
         if (userFirst == null) {
             throw new ObjectNotFoundException("пользователь с id=" + userFirstId + " Не найден");
@@ -106,22 +105,9 @@ public class UserService {
         if (userSecond == null) {
             throw new ObjectNotFoundException("пользователь с id=" + userSecondId + " Не найден");
         }
-        /*userStorage.validateUserId(userFirstId);
-        userStorage.validateUserId(userSecondId);
-        validateUsersIsNotFriends(userFirstId, userSecondId);
-        validateUsersIsNotFriends(userSecondId, userFirstId);*/
-        Set<Long> commonUser = new HashSet(userFirst.getFriends());
-        commonUser.retainAll(userSecond.getFriends());
-       /* List<User> friends = new ArrayList<>();
-        for (long i : commonUser) {
-            friends.add(userStorage.getUserById(i));
-        }
-        return friends;*/
-        return commonUser
-                .stream()
-                .map(userStorage.getUsers()::get)
+        Set<Long> commonFriends = new HashSet(userFirst.getFriends());
+        commonFriends.retainAll(userSecond.getFriends());
+        return commonFriends.stream().map(friendId -> userStorage.getUserById(friendId))
                 .collect(Collectors.toList());
-       // return commonUser.stream().map(friendId -> userStorage.getUserById(friendId))
-          //      .collect(Collectors.toList());
     }
 }
