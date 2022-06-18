@@ -41,11 +41,11 @@ public class UserService {
     }
 
     public List<User> getUserFriends(long id) {
-        userStorage.validateUserId(id);
+       // userStorage.validateUserId(id);
         User user = userStorage.getUserById(id);
-        if (user == null) {
+       /* if (user == null) {
             throw new ObjectNotFoundException("пользователь с id=" + id + " Не найден");
-        }
+        }*/
         return user.getFriends().stream().map(friendId -> userStorage.getUserById(friendId))
                 .collect(Collectors.toList());
     }
@@ -56,8 +56,8 @@ public class UserService {
         User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
-        validateUsersIsFriends(userFirstId, userSecondId);
-        validateUsersIsFriends(userSecondId, userFirstId);
+       // validateUsersIsFriends(userFirstId, userSecondId);
+       // validateUsersIsFriends(userSecondId, userFirstId);
         userFirst.getFriends().add(userSecondId);
         userSecond.getFriends().add(userFirstId);
         userStorage.updateUser(userFirst);
@@ -87,8 +87,8 @@ public class UserService {
         User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
-        validateUsersIsNotFriends(userFirstId, userSecondId);
-        validateUsersIsNotFriends(userSecondId, userFirstId);
+        //validateUsersIsNotFriends(userFirstId, userSecondId);
+        //validateUsersIsNotFriends(userSecondId, userFirstId);
         userFirst.getFriends().remove(userSecondId);
         userSecond.getFriends().remove(userFirstId);
         userStorage.updateUser(userFirst);
