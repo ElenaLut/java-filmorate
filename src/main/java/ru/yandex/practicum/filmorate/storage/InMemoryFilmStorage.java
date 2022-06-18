@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.service.GeneratorId;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Slf4j
@@ -33,6 +34,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
         validateUniqName(film);
         film.setId(generatorId.generate());
+        if (film.getLikes() == null) {
+            film.setLikes(new HashSet<>());
+        }
         validateNewFilm(film);
         films.put(film.getId(), film);
         log.info("Добавлен фильм: {}", film);
@@ -52,6 +56,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         log.info("Запрос на обновление фильма {} отправлен", film);
         validateFilmId(film.getId());
         validateNewFilm(film);
+        if (film.getLikes() == null) {
+            film.setLikes(new HashSet<>());
+        }
         films.put(film.getId(), film);
         log.info("Фильм изменен: {}", film);
         return film;

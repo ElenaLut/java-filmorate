@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.GeneratorId;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Slf4j
@@ -34,6 +35,9 @@ public class InMemoryUserStorage implements UserStorage {
         }
         validateUniqEmail(user);
         user.setId(generatorId.generate());
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
         validateNewUser(user);
         users.put(user.getId(), user);
         log.info("Пользователь создан: {}", user);
@@ -53,6 +57,9 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Запрос на обновление пользователя {} отправлен", user);
         validateUserId(user.getId());
         validateNewUser(user);
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
         users.put(user.getId(), user);
         log.info("Пользователь изменен: {}", user);
         return user;
