@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.GeneratorId;
 
 import java.time.LocalDate;
@@ -33,12 +32,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (films.containsKey(film.getId())) {
             throw new ValidationException("Такой фильм уже существует");
         }
+        validateNewFilm(film);
         validateUniqName(film);
         film.setId(generatorId.generate());
         if (film.getLikes() == null) {
             film.setLikes(new HashSet<>());
         }
-        validateNewFilm(film);
         films.put(film.getId(), film);
         log.info("Добавлен фильм: {}", film);
         return film;

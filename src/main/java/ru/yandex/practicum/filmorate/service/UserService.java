@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -41,11 +40,7 @@ public class UserService {
     }
 
     public List<User> getUserFriends(long id) {
-       // userStorage.validateUserId(id);
         User user = userStorage.getUserById(id);
-       /* if (user == null) {
-            throw new ObjectNotFoundException("пользователь с id=" + id + " Не найден");
-        }*/
         return user.getFriends().stream().map(friendId -> userStorage.getUserById(friendId))
                 .collect(Collectors.toList());
     }
@@ -56,29 +51,11 @@ public class UserService {
         User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
-       // validateUsersIsFriends(userFirstId, userSecondId);
-       // validateUsersIsFriends(userSecondId, userFirstId);
         userFirst.getFriends().add(userSecondId);
         userSecond.getFriends().add(userFirstId);
         userStorage.updateUser(userFirst);
         userStorage.updateUser(userSecond);
         log.info("Пользователи id={} и id={} добавлены в друзья", userFirstId, userSecondId);
-    }
-
-    public void validateUsersIsFriends(long userFirstId, long userSecondId) {
-        if (userStorage.getUsers().get(userFirstId).getFriends().contains(userSecondId)) {
-            log.error("Пользователь id={} уже добавлен в друзья пользователя id={}", userSecondId, userFirstId);
-            throw new ValidationException("Пользователь id=" + userSecondId + " уже добавлен в друзья пользователя " +
-                    "id=" + userFirstId);
-        }
-    }
-
-    public void validateUsersIsNotFriends(long userFirstId, long userSecondId) {
-        if (!userStorage.getUsers().get(userFirstId).getFriends().contains(userSecondId)) {
-            log.error("Пользователь id={} не добавлен в друзья пользователя id={}", userSecondId, userFirstId);
-            throw new ObjectNotFoundException("Пользователь id=" + userSecondId + " не добавлен в друзья " +
-                    "пользователя " + userFirstId);
-        }
     }
 
     public void removeFriendList(long userFirstId, long userSecondId) {
@@ -87,8 +64,6 @@ public class UserService {
         User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
-        //validateUsersIsNotFriends(userFirstId, userSecondId);
-        //validateUsersIsNotFriends(userSecondId, userFirstId);
         userFirst.getFriends().remove(userSecondId);
         userSecond.getFriends().remove(userFirstId);
         userStorage.updateUser(userFirst);
@@ -96,7 +71,7 @@ public class UserService {
         log.info("Пользователи id={} и id={} удалены из друзей", userFirstId, userSecondId);
     }
 
-    public List<User> showCommonFriends (Long userFirstId, Long userSecondId){
+    public List<User> showCommonFriends(Long userFirstId, Long userSecondId) {
         User userFirst = userStorage.getUserById(userFirstId);
         if (userFirst == null) {
             throw new ObjectNotFoundException("пользователь с id=" + userFirstId + " Не найден");

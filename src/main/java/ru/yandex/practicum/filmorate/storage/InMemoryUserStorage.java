@@ -33,12 +33,12 @@ public class InMemoryUserStorage implements UserStorage {
             log.error("Пользователь {} существует", user);
             throw new ValidationException("Такой пользователь уже существует");
         }
+        validateNewUser(user);
         validateUniqEmail(user);
         user.setId(generatorId.generate());
         if (user.getFriends() == null) {
             user.setFriends(new HashSet<>());
         }
-        validateNewUser(user);
         users.put(user.getId(), user);
         log.info("Пользователь создан: {}", user);
         return user;
