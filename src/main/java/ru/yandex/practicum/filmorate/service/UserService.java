@@ -52,12 +52,16 @@ public class UserService {
 
     public void addInFriendList(long userFirstId, long userSecondId) {
         log.info("Запрос на добавление в друзья пользователей id={} и id={} направлен", userFirstId, userSecondId);
+        User userFirst = userStorage.getUserById(userFirstId);
+        User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
         validateUsersIsFriends(userFirstId, userSecondId);
         validateUsersIsFriends(userSecondId, userFirstId);
-        userStorage.getUsers().get(userFirstId).getFriends().add(userSecondId);
-        userStorage.getUsers().get(userSecondId).getFriends().add(userFirstId);
+        userFirst.getFriends().add(userSecondId);
+        userSecond.getFriends().add(userFirstId);
+        userStorage.updateUser(userFirst);
+        userStorage.updateUser(userSecond);
         log.info("Пользователи id={} и id={} добавлены в друзья", userFirstId, userSecondId);
     }
 
@@ -79,25 +83,31 @@ public class UserService {
 
     public void removeFriendList(long userFirstId, long userSecondId) {
         log.info("Запрос на удаление из друзей пользователей id={} и id={} направлен", userFirstId, userSecondId);
+        User userFirst = userStorage.getUserById(userFirstId);
+        User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
         validateUsersIsNotFriends(userFirstId, userSecondId);
         validateUsersIsNotFriends(userSecondId, userFirstId);
-        userStorage.getUsers().get(userFirstId).getFriends().remove(userSecondId);
-        userStorage.getUsers().get(userSecondId).getFriends().remove(userFirstId);
+        userFirst.getFriends().remove(userSecondId);
+        userSecond.getFriends().remove(userFirstId);
+        userStorage.updateUser(userFirst);
+        userStorage.updateUser(userSecond);
         log.info("Пользователи id={} и id={} удалены из друзей", userFirstId, userSecondId);
     }
 
     public List<User> showCommonFriends(long userFirstId, long userSecondId) {
         log.info("Запрос общих друзей пользователей id={} и id={} направлен", userFirstId, userSecondId);
+        User userFirst = userStorage.getUserById(userFirstId);
+        User userSecond = userStorage.getUserById(userSecondId);
         userStorage.validateUserId(userFirstId);
         userStorage.validateUserId(userSecondId);
         validateUsersIsNotFriends(userFirstId, userSecondId);
         validateUsersIsNotFriends(userSecondId, userFirstId);
         List<User> commonUser = new ArrayList<>();
         for (User user : userStorage.getUsers().values()) {
-            if (userStorage.getUsers().get(userFirstId).getFriends().contains(user.getId()) &
-                    userStorage.getUsers().get(userFirstId).getFriends().contains(user.getId())) {
+            if (userFirst.getFriends().contains(user.getId()) &
+                    userSecond.getFriends().contains(user.getId())) {
                 commonUser.add(user);
             }
         }

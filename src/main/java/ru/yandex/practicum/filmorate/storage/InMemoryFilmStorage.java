@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.GeneratorId;
 
 import java.time.LocalDate;
@@ -97,5 +98,10 @@ public class InMemoryFilmStorage implements FilmStorage {
             log.error("Продолжительность фильма должна быть больше 0: {}", film.getDuration());
             throw new ValidationException("продолжительность фильма должна быть положительной.");
         }
+    }
+
+    @Override
+    public Film getFilmById(long id) {
+        return films.get(id);
     }
 }

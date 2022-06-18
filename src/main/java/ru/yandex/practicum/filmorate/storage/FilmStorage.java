@@ -20,4 +20,6 @@ public interface FilmStorage {
     void validateFilmId(long id);
 
     Map<Long, Film> getFilms();
+
+    Film getFilmById(long id);
 }

@@ -21,4 +21,5 @@ public interface UserStorage {
     void validateUserId(long id);
 
     Map<Long, User> getUsers();
+    User getUserById(long id);
 }

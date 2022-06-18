@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -45,10 +46,12 @@ public class FilmService {
 
     public void addLike(long filmId, long userId) {
         log.info("Запрос от пользователя id={} на лайк к фильму id={} направлен", userId, filmId);
+        Film film = filmStorage.getFilmById(filmId);
         userStorage.validateUserId(userId);
         filmStorage.validateFilmId(filmId);
         validateUsersHaveLike(userId, filmId);
-        filmStorage.getFilms().get(filmId).getLikes().add(userId);
+        film.getLikes().add(userId);
+        filmStorage.updateFilm(film);
         log.info("Пользователь id={} поставил лайк фильму id={}", userId, filmId);
     }
 
@@ -68,10 +71,12 @@ public class FilmService {
 
     public void removeLike(long filmId, long userId) {
         log.info("Запрос на удаление лайка пользователя id={} с фильма id={} направлен", userId, filmId);
+        Film film = filmStorage.getFilmById(filmId);
         userStorage.validateUserId(userId);
         filmStorage.validateFilmId(filmId);
         validateUsersHaveNotLike(userId, filmId);
-        filmStorage.getFilms().get(filmId).getLikes().remove(userId);
+        film.getLikes().remove(userId);
+        filmStorage.updateFilm(film);
         log.info("Лайк пользователя id={} удален с фильма id={}", userId, filmId);
     }
 
