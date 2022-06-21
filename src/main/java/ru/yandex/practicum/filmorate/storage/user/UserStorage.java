@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.user;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.model.User;
@@ -13,12 +13,6 @@ public interface UserStorage {
     User updateUser(User user);
 
     Collection<User> getAllUsers();
-
-    void validateUniqEmail(User user);
-
-    void validateNewUser(User user);
-
-    void validateUserId(long id);
 
     Map<Long, User> getUsers();
     User getUserById(long id);

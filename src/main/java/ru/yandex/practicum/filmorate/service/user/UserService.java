@@ -1,12 +1,11 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.service.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
-import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,10 +15,12 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserStorage userStorage;
+    private final ValidationUserService validationUserService;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, ValidationUserService validationUserService) {
         this.userStorage = userStorage;
+        this.validationUserService = validationUserService;
     }
 
     public User addUser(@RequestBody User user) {
@@ -34,9 +35,8 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
-    public User getUserById(long id) {
-        userStorage.validateUserId(id);
-        return userStorage.getUsers().get(id);
+    public User getById(long id) {
+        return userStorage.getUserById(id);
     }
 
     public List<User> getUserFriends(long id) {
@@ -49,8 +49,8 @@ public class UserService {
         log.info("Запрос на добавление в друзья пользователей id={} и id={} направлен", userFirstId, userSecondId);
         User userFirst = userStorage.getUserById(userFirstId);
         User userSecond = userStorage.getUserById(userSecondId);
-        userStorage.validateUserId(userFirstId);
-        userStorage.validateUserId(userSecondId);
+        validationUserService.validateUserId(userFirstId);
+        validationUserService.validateUserId(userSecondId);
         userFirst.getFriends().add(userSecondId);
         userSecond.getFriends().add(userFirstId);
         userStorage.updateUser(userFirst);
@@ -62,8 +62,8 @@ public class UserService {
         log.info("Запрос на удаление из друзей пользователей id={} и id={} направлен", userFirstId, userSecondId);
         User userFirst = userStorage.getUserById(userFirstId);
         User userSecond = userStorage.getUserById(userSecondId);
-        userStorage.validateUserId(userFirstId);
-        userStorage.validateUserId(userSecondId);
+        validationUserService.validateUserId(userFirstId);
+        validationUserService.validateUserId(userSecondId);
         userFirst.getFriends().remove(userSecondId);
         userSecond.getFriends().remove(userFirstId);
         userStorage.updateUser(userFirst);
@@ -73,13 +73,7 @@ public class UserService {
 
     public List<User> showCommonFriends(Long userFirstId, Long userSecondId) {
         User userFirst = userStorage.getUserById(userFirstId);
-        if (userFirst == null) {
-            throw new ObjectNotFoundException("пользователь с id=" + userFirstId + " Не найден");
-        }
         User userSecond = userStorage.getUserById(userSecondId);
-        if (userSecond == null) {
-            throw new ObjectNotFoundException("пользователь с id=" + userSecondId + " Не найден");
-        }
         Set<Long> commonFriends = new HashSet(userFirst.getFriends());
         commonFriends.retainAll(userSecond.getFriends());
         return commonFriends.stream().map(friendId -> userStorage.getUserById(friendId))

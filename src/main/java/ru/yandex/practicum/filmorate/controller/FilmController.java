@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.film.FilmService;
 
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +15,7 @@ import java.util.List;
 @RequestMapping("/films")
 public class FilmController {
     private final FilmService filmService;
+    private final String COUNT_OF_POPULAR_FILM = "10";
 
     @Autowired
     public FilmController(FilmService filmService) {
@@ -28,7 +29,7 @@ public class FilmController {
 
     @GetMapping("/{id}")
     public Film getFilmById(@PathVariable long id) {
-        return filmService.getFilmById(id);
+        return filmService.getById(id);
     }
 
     @PutMapping
@@ -52,7 +53,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getTheMostPopularFilms(@RequestParam(value = "count", defaultValue = "10", required = false) long count) {
+    public List<Film> getTheMostPopularFilms(@RequestParam(value = "count", defaultValue = COUNT_OF_POPULAR_FILM, required = false) long count) {
         return filmService.getTheMostPopularFilms(count);
     }
 }
