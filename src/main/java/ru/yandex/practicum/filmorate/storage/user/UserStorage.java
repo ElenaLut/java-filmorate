@@ -15,5 +15,10 @@ public interface UserStorage {
     Collection<User> getAllUsers();
 
     Map<Long, User> getUsers();
+
     User getUserById(long id);
+
+    void validateUserId(long id);
+
+    void validateUniqEmail(User user);
 }

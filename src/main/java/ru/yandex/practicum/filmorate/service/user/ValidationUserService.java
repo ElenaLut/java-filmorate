@@ -1,40 +1,15 @@
 package ru.yandex.practicum.filmorate.service.user;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 
 @Slf4j
 @Service
 public class ValidationUserService {
-
-    private final UserStorage userStorage;
-
-    @Autowired
-    public ValidationUserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
-
-    public void validateUserId(long id) {
-        if (!userStorage.getUsers().containsKey(id)) {
-            log.error("Пользователь с id={} не существует", id);
-            throw new NotFoundException("Пользователя с id=" + id + " не существует");
-        }
-    }
-
-    public void validateUniqEmail(User user) {
-        for (User u : userStorage.getUsers().values()) {
-            if (user.getEmail().equals(u.getEmail())) {
-                throw new ValidationException("Такой пользователь уже существует под id " + u.getId());
-            }
-        }
-    }
 
     public void validateNewUser(User user) {
         if (user.getEmail().isBlank() || user.getEmail() == null || !user.getEmail().contains("@")) {

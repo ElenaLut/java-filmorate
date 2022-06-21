@@ -16,4 +16,8 @@ public interface FilmStorage {
     Map<Long, Film> getFilms();
 
     Film getFilmById(long id);
+
+    void validateFilmId(long id);
+
+    void validateUniqName(Film film);
 }

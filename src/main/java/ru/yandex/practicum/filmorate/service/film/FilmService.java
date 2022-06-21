@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.user.ValidationUserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -19,16 +18,11 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private final ValidationFilmService validationFilmService;
-    private final ValidationUserService validationUserService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage, ValidationFilmService validationFilmService,
-                       ValidationUserService validationUserService) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
-        this.validationFilmService = validationFilmService;
-        this.validationUserService = validationUserService;
     }
 
     public Film addFilm(Film film) {
@@ -50,8 +44,8 @@ public class FilmService {
     public void addLike(long filmId, long userId) {
         log.info("Запрос от пользователя id={} на лайк к фильму id={} направлен", userId, filmId);
         Film film = filmStorage.getFilmById(filmId);
-        validationUserService.validateUserId(userId);
-        validationFilmService.validateFilmId(filmId);
+        userStorage.validateUserId(userId);
+        filmStorage.validateFilmId(filmId);
         validateUsersHaveLike(userId, filmId);
         film.getLikes().add(userId);
         filmStorage.updateFilm(film);
@@ -75,8 +69,8 @@ public class FilmService {
     public void removeLike(long filmId, long userId) {
         log.info("Запрос на удаление лайка пользователя id={} с фильма id={} направлен", userId, filmId);
         Film film = filmStorage.getFilmById(filmId);
-        validationUserService.validateUserId(userId);
-        validationFilmService.validateFilmId(filmId);
+        userStorage.validateUserId(userId);
+        filmStorage.validateFilmId(filmId);
         validateUsersHaveNotLike(userId, filmId);
         film.getLikes().remove(userId);
         filmStorage.updateFilm(film);

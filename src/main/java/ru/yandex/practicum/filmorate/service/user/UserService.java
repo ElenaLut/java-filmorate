@@ -49,8 +49,8 @@ public class UserService {
         log.info("Запрос на добавление в друзья пользователей id={} и id={} направлен", userFirstId, userSecondId);
         User userFirst = userStorage.getUserById(userFirstId);
         User userSecond = userStorage.getUserById(userSecondId);
-        validationUserService.validateUserId(userFirstId);
-        validationUserService.validateUserId(userSecondId);
+        userStorage.validateUserId(userFirstId);
+        userStorage.validateUserId(userSecondId);
         userFirst.getFriends().add(userSecondId);
         userSecond.getFriends().add(userFirstId);
         userStorage.updateUser(userFirst);
@@ -62,8 +62,8 @@ public class UserService {
         log.info("Запрос на удаление из друзей пользователей id={} и id={} направлен", userFirstId, userSecondId);
         User userFirst = userStorage.getUserById(userFirstId);
         User userSecond = userStorage.getUserById(userSecondId);
-        validationUserService.validateUserId(userFirstId);
-        validationUserService.validateUserId(userSecondId);
+        userStorage.validateUserId(userFirstId);
+        userStorage.validateUserId(userSecondId);
         userFirst.getFriends().remove(userSecondId);
         userSecond.getFriends().remove(userFirstId);
         userStorage.updateUser(userFirst);
