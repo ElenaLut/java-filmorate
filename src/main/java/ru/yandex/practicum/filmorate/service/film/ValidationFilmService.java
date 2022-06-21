@@ -15,12 +15,6 @@ public class ValidationFilmService {
 
     private final int FILM_NAME_LENGTH = 200;
     private final LocalDate RELEASE_DATE = LocalDate.of(1895, 12, 28);
-    private FilmStorage filmStorage;
-
-    @Autowired
-    public void setValidationFilmService(FilmStorage filmStorage) {
-        this.filmStorage = filmStorage;
-    }
 
     public void validateNewFilm(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
