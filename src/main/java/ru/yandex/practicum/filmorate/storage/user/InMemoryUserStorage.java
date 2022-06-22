@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.GeneratorId;
+import ru.yandex.practicum.filmorate.service.user.GeneratorUserId;
 import ru.yandex.practicum.filmorate.service.user.ValidationUserService;
 
 import java.util.Collection;
@@ -19,12 +19,9 @@ public class InMemoryUserStorage implements UserStorage {
 
     private final ValidationUserService validationUserService = new ValidationUserService();
     private final Map<Long, User> users = new HashMap<>();
-    private GeneratorId generatorId;
 
     @Autowired
-    public InMemoryUserStorage(GeneratorId generatorId) {
-        this.generatorId = generatorId;
-    }
+    private GeneratorUserId generatorId = new GeneratorUserId();
 
     @Override
     public Map<Long, User> getUsers() {
@@ -64,7 +61,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public void validateUserId(long id) {
-        if (users.containsKey(id)) {
+        if (!users.containsKey(id)) {
             log.error("Пользователь с id={} не существует", id);
             throw new NotFoundException("Пользователя с id=" + id + " не существует");
         }
