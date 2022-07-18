@@ -3,15 +3,13 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.FriendsStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.user.GeneratorUserId;
 import ru.yandex.practicum.filmorate.service.user.ValidationUserService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -23,21 +21,16 @@ public class InMemoryUserStorage implements UserStorage {
     @Autowired
     private GeneratorUserId generatorId = new GeneratorUserId();
 
-    @Override
     public Map<Long, User> getUsers() {
         return users;
     }
 
     @Override
     public User addUser(User user) {
-        log.info("Запрос на создание пользователя {} отправлен", user);
         if (users.containsKey(user.getId())) {
             log.error("Пользователь {} существует", user);
             throw new IllegalStateException("Пользователь с id=" + user.getId() + " уже существует.");
         }
-        validationUserService.validateNewUser(user);
-        validateUniqEmail(user);
-        user.setId(generatorId.generate());
         users.put(user.getId(), user);
         log.info("Пользователь создан: {}", user);
         return user;
@@ -45,9 +38,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        log.info("Запрос на обновление пользователя {} отправлен", user);
-        validateUserId(user.getId());
-        validationUserService.validateNewUser(user);
+        validationUserService.validateUserId(user.getId());
         users.put(user.getId(), user);
         log.info("Пользователь изменен: {}", user);
         return user;
@@ -60,25 +51,54 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void validateUserId(long id) {
-        if (!users.containsKey(id)) {
-            log.error("Пользователь с id={} не существует", id);
-            throw new NotFoundException("Пользователя с id=" + id + " не существует");
-        }
-    }
-
-    @Override
-    public void validateUniqEmail(User user) {
-        for (User u : users.values()) {
-            if (user.getEmail().equals(u.getEmail())) {
-                throw new ValidationException("Такой пользователь уже существует под id " + u.getId());
-            }
-        }
-    }
-
-    @Override
     public User getUserById(long id) {
-        validateUserId(id);
+        validationUserService.validateUserId(id);
         return users.get(id);
+    }
+
+    @Override
+    public void addInFriendList(long userFirstId, long userSecondId) {
+        User userFirst = getUserById(userFirstId);
+        User userSecond = getUserById(userSecondId);
+        validationUserService.validateUserId(userFirstId);
+        validationUserService.validateUserId(userSecondId);
+        userFirst.addFriend(userSecond, FriendsStatus.CONFIRMED);
+        if (userSecond.getFriends().containsKey(userFirst)) {
+            userSecond.addFriend(userFirst, FriendsStatus.CONFIRMED);
+        } else {
+            userSecond.addFriend(userFirst, FriendsStatus.UNCONFIRMED);
+        }
+        updateUser(userFirst);
+        updateUser(userSecond);
+        log.info("Пользователи id={} и id={} добавлены в друзья", userFirstId, userSecondId);
+    }
+
+    @Override
+    public void removeFriendList(long userFirstId, long userSecondId) {
+        User userFirst = getUserById(userFirstId);
+        User userSecond = getUserById(userSecondId);
+        validationUserService.validateUserId(userFirstId);
+        validationUserService.validateUserId(userSecondId);
+        userFirst.getFriends().remove(userSecondId);
+        userSecond.getFriends().remove(userFirstId);
+       updateUser(userFirst);
+        updateUser(userSecond);
+        log.info("Пользователи id={} и id={} удалены из друзей", userFirstId, userSecondId);
+    }
+
+    @Override
+    public List<User> showCommonFriends(Long userFirstId, Long userSecondId) {
+        Set<User> userFirstFriends = getUserFriends(userFirstId).keySet();
+        Set<User> userSecondFriends = getUserFriends(userSecondId).keySet();
+        return userFirstFriends
+                .stream()
+                .filter(userSecondFriends::contains)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<User, FriendsStatus> getUserFriends(long id) {
+        User user = getUserById(id);
+        return user.getFriends();
     }
 }
