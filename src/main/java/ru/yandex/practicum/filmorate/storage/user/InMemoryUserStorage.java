@@ -57,7 +57,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void addInFriendList(long userFirstId, long userSecondId) {
+    public User addInFriendList(long userFirstId, long userSecondId) {
         User userFirst = getUserById(userFirstId);
         User userSecond = getUserById(userSecondId);
         validationUserService.validateUserId(userFirstId);
@@ -71,6 +71,7 @@ public class InMemoryUserStorage implements UserStorage {
         updateUser(userFirst);
         updateUser(userSecond);
         log.info("Пользователи id={} и id={} добавлены в друзья", userFirstId, userSecondId);
+        return getUserById(userFirstId);
     }
 
     @Override

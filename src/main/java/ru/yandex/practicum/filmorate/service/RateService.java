@@ -3,10 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.Rate;
 import ru.yandex.practicum.filmorate.model.RateName;
 import ru.yandex.practicum.filmorate.storage.rate.RateStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -19,11 +21,11 @@ public class RateService {
         this.rateStorage = rateStorage;
     }
 
-    public List<RateName> getAllRates() {
+    public List<Rate> getAllRates() {
         return rateStorage.getAllRates();
     }
 
-    public RateName getRateById(int id) {
+    public Rate getRateById(int id) {
         return rateStorage.getRateById(id);
     }
 }

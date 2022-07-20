@@ -35,6 +35,9 @@ public class ValidationFilmService {
             log.error("Продолжительность фильма должна быть больше 0: {}", film.getDuration());
             throw new ValidationException("продолжительность фильма должна быть положительной.");
         }
+        if (film.getMpa() == null) {
+            throw new ValidationException("Отсутствует рейтинг");
+        }
     }
 
     public void validateFilmId(long id) {

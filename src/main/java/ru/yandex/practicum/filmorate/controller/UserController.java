@@ -42,8 +42,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addInFriendList(@PathVariable("id") long id, @PathVariable long friendId) {
-        userService.addInFriendList(id, friendId);
+    public User addInFriendList(@PathVariable("id") long id, @PathVariable long friendId) {
+       return userService.addInFriendList(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
@@ -57,7 +57,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public Map<User, FriendsStatus> getUserFriends(@PathVariable("id") long id) {
-        return userService.getUserFriends(id);
+    public List getUserFriends(@PathVariable("id") long id) {
+        List ListofKeys = new ArrayList(userService.getUserFriends(id).keySet());
+        return ListofKeys;
     }
 }

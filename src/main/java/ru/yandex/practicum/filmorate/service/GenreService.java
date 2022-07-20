@@ -4,10 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.GenreName;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -20,11 +22,11 @@ public class GenreService {
         this.genreStorage = genreStorage;
     }
 
-    public List<GenreName> getAllGenres() {
+    public List<Genre> getAllGenres() {
         return genreStorage.getAllGenres();
     }
 
-    public GenreName getGenreById(int id) throws NotFoundException {
+    public Genre getGenreById(int id) throws NotFoundException {
         return genreStorage.getGenreById(id);
     }
 }

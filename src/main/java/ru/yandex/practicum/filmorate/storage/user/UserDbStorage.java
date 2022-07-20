@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.FriendsStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -48,6 +49,7 @@ public class UserDbStorage implements UserStorage {
         if (user == null) {
             throw new NotFoundException("Запрос пуст");
         }
+        checkUser(user.getId());
         String userChange = "UPDATE users " +
                 "SET " +
                 "email=?, " +
@@ -81,25 +83,31 @@ public class UserDbStorage implements UserStorage {
         return users.get(0);
     }
 
+    private void checkUser(long id) {
+        if (getUserById(id) == null) {
+            throw new NotFoundException("Пользователь с id " + id + " не обнаружен");
+        }
+    }
     @Override
     public Map<User, FriendsStatus> getUserFriends(long id) {
+       checkUser(id);
         String query = "SELECT " +
                 "u.user_id, " +
                 "email, " +
                 "login, " +
                 "user_name, " +
                 "birthday, " +
-                "f.status " +
-                "FROM user u " +
-                "INNER JOIN (SELECT user_id, friend_id, status " +
+                "f.friend_status_id " +
+                "FROM users u " +
+                "INNER JOIN (SELECT friend_id, user_id, friend_status_id " +
                 " FROM friends " +
-                " WHERE user_id = ?) AS f " +
-                " ON u.user_id = uf.friend_id";
+                " WHERE user_id = ? AND friend_status_id = 0) AS f " +
+                " ON u.user_id = f.friend_id";
         Map<User, FriendsStatus> friends = new HashMap<>();
         jdbcTemplate.query(query, rs -> {
             do {
                 User friend = makeUser(rs.getLong("user_id"), rs);
-                FriendsStatus status = FriendsStatus.values()[rs.getInt("status")];
+                FriendsStatus status = FriendsStatus.values()[rs.getInt("friend_status_id")];
                 friends.put(friend, status);
             } while (rs.next());
         }, id);
@@ -107,24 +115,29 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public void addInFriendList(long userFirstId, long userSecondId) {
+    public User addInFriendList(long userFirstId, long userSecondId) {
+        checkUser(userFirstId);
+        checkUser(userSecondId);
         String newFriend = "INSERT INTO friends" +
-                "(user_id, friend_id, status) " +
+                "(user_id, friend_id, friend_status_id) " +
                 "VALUES(?, ?, ?)";
         jdbcTemplate.update(newFriend,
                 userFirstId,
                 userSecondId,
-                FriendsStatus.CONFIRMED
+                FriendsStatus.CONFIRMED.ordinal()
         );
         jdbcTemplate.update(newFriend,
                 userSecondId,
                 userFirstId,
-                FriendsStatus.UNCONFIRMED);
+                FriendsStatus.UNCONFIRMED.ordinal());
         log.info("Пользователи id={} и id={} добавлены в друзья", userFirstId, userSecondId);
+        return getUserById(userFirstId);
     }
 
     @Override
     public void removeFriendList(long userFirstId, long userSecondId) throws NotFoundException {
+        checkUser(userFirstId);
+        checkUser(userSecondId);
         User user = getUserById(userFirstId);
         User friend = getUserById(userSecondId);
         if (user == null || friend == null) {
@@ -138,14 +151,20 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> showCommonFriends(Long userFirstId, Long userSecondId) {
+        checkUser(userFirstId);
+        checkUser(userSecondId);
         User firstUser = getUserById(userFirstId);
         User secondUser = getUserById(userSecondId);
         if (firstUser == null || secondUser == null) {
             throw new NotFoundException("Запрос пуст");
         }
         String query = "SELECT * FROM users WHERE user_id IN (" +
-                "SELECT friend_id FROM friends " +
-                "WHERE user_id=? OR user_id=?)";
+                " SELECT u.friend_id FROM friends AS u" +
+                " JOIN (SELECT f.* FROM friends AS f WHERE user_id = ?) AS f" +
+                " WHERE u.user_id = ?" +
+                "   AND u.friend_id = f.friend_id" +
+                " GROUP BY u.friend_id)";
+
         List<User> commonFriends = jdbcTemplate.query(query, (rs, rowNum) ->
                 makeUser(rs.getLong("user_id"), rs), userFirstId, userSecondId);
         return commonFriends;
@@ -156,6 +175,12 @@ public class UserDbStorage implements UserStorage {
         String login = rs.getString("login");
         LocalDate birthday = rs.getDate("birthday").toLocalDate();
         String email = rs.getString("email");
-        return new User(user_id, email, login, name, birthday);
+        User user = new User();
+        user.setId(user_id);
+        user.setEmail(email);
+        user.setName(name);
+        user.setLogin(login);
+        user.setBirthday(birthday);
+        return user;
     }
 }

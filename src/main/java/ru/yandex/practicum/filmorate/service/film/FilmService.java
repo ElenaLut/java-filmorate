@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.user.GeneratorUserId;
 import ru.yandex.practicum.filmorate.service.user.ValidationUserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
@@ -15,21 +17,19 @@ import java.util.List;
 @Service
 public class FilmService {
 
-    private final ValidationUserService validationUserService;
-    private final ValidationFilmService validationFilmService;
+    private final ValidationFilmService validationFilmService = new ValidationFilmService();
     private final FilmStorage filmStorage;
+    private GeneratorFilmId generatorFilmIdId = new GeneratorFilmId();
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, ValidationUserService validationUserService,
-                       ValidationFilmService validationFilmService) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
         this.filmStorage = filmStorage;
-        this.validationFilmService = validationFilmService;
-        this.validationUserService = validationUserService;
     }
 
     public Film addFilm(Film film) {
         log.info("Запрос на создание фильма {} отправлен", film);
         validationFilmService.validateNewFilm(film);
+        film.setId(generatorFilmIdId.generate());
         return filmStorage.addFilm(film);
     }
 

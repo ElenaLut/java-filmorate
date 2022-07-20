@@ -2,15 +2,22 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Rate;
+import ru.yandex.practicum.filmorate.storage.filmgenre.FilmGenreStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.rate.RateStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -18,10 +25,17 @@ import java.util.List;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
+    private final UserStorage userStorage;
+    private final RateStorage rateStorage;
+    private final FilmGenreStorage filmGenreStorage;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, @Qualifier("userDbStorage") UserStorage userStorage,
+                         RateStorage rateStorage, FilmGenreStorage filmGenreStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.userStorage = userStorage;
+        this.rateStorage = rateStorage;
+        this.filmGenreStorage = filmGenreStorage;
     }
 
     @Override
@@ -38,10 +52,10 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDescription(),
                 film.getDuration(),
                 film.getReleaseDate(),
-                film.getRate() + 1
+                film.getMpa().getId()
         );
         if (!film.getGenres().isEmpty()) {
-            addFilmGenre(film);
+           addFilmGenre(film);
         }
         if (!film.getLikes().isEmpty()) {
             addFilmLikes(film);
@@ -51,15 +65,15 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void addFilmGenre(Film film) {
-        String newFilmGenre = "INSERT INTO film_genre VALUES (?, ?)";
-        String newGenre = "INSERT INTO genre VALUES (?, ?)";
+        checkFilm(film.getId());
+        String newGenre = "INSERT INTO film_genre VALUES (?, ?)";
         for (Genre genre : film.getGenres()) {
-            jdbcTemplate.update(newFilmGenre, film.getId(), genre.getId());
-            jdbcTemplate.update(newGenre, genre.getId(), genre.getName());
+            jdbcTemplate.update(newGenre, film.getId(), genre.getId());
         }
     }
 
     private void addFilmLikes(Film film) {
+        checkFilm(film.getId());
         String newFilmLike = "INSERT INTO film_likes VALUES (?, ?)";
         for (long i : film.getLikes()) {
             jdbcTemplate.update(newFilmLike, film.getId(), i);
@@ -71,12 +85,13 @@ public class FilmDbStorage implements FilmStorage {
         if (film == null) {
             throw new NotFoundException("Запрос пуст");
         }
+        checkFilm(film.getId());
         String filmChange = "UPDATE films " +
                 "SET " +
                 "film_name=?, " +
                 "description=?, " +
-                "duration=? " +
-                "release_date=?" +
+                "duration=?, " +
+                "release_date=?, " +
                 "rate_id=?" +
                 "WHERE film_id=?";
         jdbcTemplate.update(filmChange,
@@ -84,13 +99,13 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDescription(),
                 film.getDuration(),
                 film.getReleaseDate(),
-                film.getRate() + 1,
+                film.getMpa().getId(),
                 film.getId());
         deleteGenre(film);
         deleteLikes(film);
-        if (!film.getGenres().isEmpty()) {
-            addFilmGenre(film);
-        }
+       // if (!film.getGenres().isEmpty()) {
+            filmGenreStorage.updateGenresToFilm(film);
+      //  }
         if (!film.getLikes().isEmpty()) {
             addFilmLikes(film);
         }
@@ -99,11 +114,13 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteGenre(Film film) {
+        checkFilm(film.getId());
         String genre = "DELETE FROM film_genre WHERE film_id=?";
         jdbcTemplate.update(genre, film.getId());
     }
 
     private void deleteLikes(Film film) {
+       checkFilm(film.getId());
         String likes = "DELETE FROM film_likes WHERE film_id=?";
         jdbcTemplate.update(likes, film.getId());
     }
@@ -115,48 +132,70 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private Film makeFilm(long film_id, ResultSet rs) throws SQLException {
-        String name = rs.getString("film_name");
-        String description = rs.getString("description");
-        int duration = rs.getInt("duration");
-        LocalDate release_date = rs.getDate("release_date").toLocalDate();
-        int rate_id = rs.getInt("rate_id");
-        return new Film(film_id, name, description, release_date, duration, rate_id);
+        Film film = new Film();
+        film.setId(film_id);
+        film.setName(rs.getString("film_name"));
+        film.setDescription(rs.getString("description"));
+        film.setDuration(rs.getInt("duration"));
+        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+        film.setMpa(new Rate(rs.getInt("rate_id")));
+        film.setGenres(filmGenreStorage.findAllByFilmId(film_id));
+        return film;
     }
 
     @Override
-    public Film getFilmById(long id) {
+    public Film getFilmById(long id) throws NotFoundException{
         String query = "SELECT * FROM films WHERE film_id=?";
         List<Film> films = jdbcTemplate.query(query, (rs, rowNum) -> makeFilm(id, rs), id);
         if (films.isEmpty()) {
             throw new NotFoundException("Объекта не существует");
         }
-        return films.get(0);
+        Film film = films.get(0);
+       // film.setMpa(rateStorage.getRateById(film.getMpa().getId()).get());
+       /* if (films.get(0).getMpa().getId() > 0) {*/
+            if (rateStorage.getRateById(film.getMpa().getId()) != null) {
+                films.get(0).setMpa(rateStorage.getRateById(film.getMpa().getId()));
+            }
+
+        return film;
     }
 
     public void addLike(long filmId, long userId) {
+        checkFilm(filmId);
+        if (userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не обнаружен");
+        }
         String newFilmLike = "INSERT INTO film_likes VALUES (?, ?)";
         jdbcTemplate.update(newFilmLike, filmId, userId);
         log.info("Пользователь id={} поставил лайк фильму id={}", userId, filmId);
     }
 
     public void removeLike(long filmId, long userId) {
+        checkFilm(filmId);
+        if (userStorage.getUserById(userId) == null) {
+            throw new NotFoundException("Пользователь с id " + userId + " не обнаружен");
+        }
         String likes = "DELETE FROM film_likes WHERE film_id=? AND user_id=?";
         jdbcTemplate.update(likes, filmId, userId);
         log.info("Лайк пользователя id={} удален с фильма id={}", userId, filmId);
     }
 
+    private void checkFilm(long id) {
+        if (getFilmById(id) == null) {
+            throw new NotFoundException("Фильм с id " + id + " не обнаружен");
+        }
+    }
+
     public List<Film> getTheMostPopularFilms(long count) {
-        String films = "SELECT * " +
-                "FROM films AS f " +
-                "LEFT JOIN " +
-                "(SELECT " +
-                "film_id, " +
-                "COUNT(user_id) " +
-                "FROM film_likes " +
-                "GROUP BY film_id" +
-                "ORDER BY COUNT(user_id)) AS likes" +
-                "ON f.film_id = likes.film_id" +
-                "ORDER BY likes.count DESC" +
+        String films = "SELECT f.*\n" +
+                "FROM films AS f\n" +
+                "           LEFT JOIN\n" +
+                "       (SELECT film_id, COUNT(user_id) AS COUNT\n" +
+                "       FROM film_likes\n" +
+                "       GROUP BY film_id\n" +
+                "       ORDER BY COUNT(user_id)) AS likes\n" +
+                "       ON f.film_id = likes.film_id\n" +
+                "ORDER BY IFNULL(likes.COUNT, 0) DESC\n" +
                 "LIMIT ?";
         return jdbcTemplate.query(films, (rs, rowNum) -> makeFilm(rs.getLong("film_id"), rs), count);
     }

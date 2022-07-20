@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,15 +17,16 @@ public class User {
     private String name;
     private LocalDate birthday;
 
+    @JsonIgnore
     private Map<User, FriendsStatus> friends = new HashMap<>();
 
-    public User(Long id, String email, String login, String name, LocalDate birthday) {
+    /*public User(Long id, String email, String login, String name, LocalDate birthday) {
         this.id = id;
         this.email = email;
         this.login = login;
         this.name = name;
         this.birthday = birthday;
-    }
+    */
 
     public void addFriend(User friend, FriendsStatus status) {
         friends.put(friend, status);

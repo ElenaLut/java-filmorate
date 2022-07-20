@@ -6,14 +6,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.model.Rate;
 import ru.yandex.practicum.filmorate.model.RateName;
 import ru.yandex.practicum.filmorate.service.RateService;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/rate")
+@RequestMapping("/mpa")
 public class RateController {
     private final RateService rateService;
 
@@ -23,12 +25,12 @@ public class RateController {
     }
 
     @GetMapping
-    public List<RateName> getAllRates() {
+    public List<Rate> getAllRates() {
         return rateService.getAllRates();
     }
 
     @GetMapping("/{id}")
-    public RateName getRateById(@PathVariable int id) {
+    public Rate getRateById(@PathVariable int id) {
         return rateService.getRateById(id);
     }
 }

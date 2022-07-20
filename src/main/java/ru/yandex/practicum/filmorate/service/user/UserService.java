@@ -28,7 +28,6 @@ public class UserService {
     public User addUser(@RequestBody User user) {
         log.info("Запрос на создание пользователя {} отправлен", user);
         validationUserService.validateNewUser(user);
-        validationUserService.validateUniqEmail(user);
         user.setId(generatorId.generate());
         return userStorage.addUser(user);
     }
@@ -51,9 +50,9 @@ public class UserService {
         return userStorage.getUserFriends(id);
     }
 
-    public void addInFriendList(long userFirstId, long userSecondId) {
+    public User addInFriendList(long userFirstId, long userSecondId) {
         log.info("Запрос на добавление в друзья пользователей id={} и id={} направлен", userFirstId, userSecondId);
-        userStorage.addInFriendList(userFirstId, userSecondId);
+        return userStorage.addInFriendList(userFirstId, userSecondId);
     }
 
     public void removeFriendList(long userFirstId, long userSecondId) {
