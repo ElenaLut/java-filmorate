@@ -56,8 +56,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List getUserFriends(@PathVariable("id") long id) {
-        List ListofKeys = new ArrayList(userService.getUserFriends(id).keySet());
-        return ListofKeys;
+    public List<User> getUserFriends(@PathVariable("id") long id) {
+        List<User> keys = new ArrayList(userService.getUserFriends(id).keySet());
+        return keys;
     }
 }

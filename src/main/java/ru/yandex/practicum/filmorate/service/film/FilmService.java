@@ -14,20 +14,23 @@ import java.util.List;
 @Service
 public class FilmService {
 
-    private final ValidationFilmService validationFilmService = new ValidationFilmService();
+    private final ValidationFilmService validationFilmService;
     private final FilmStorage filmStorage;
 
-    private GeneratorFilmId generatorFilmIdId = new GeneratorFilmId();
+    private GeneratorFilmId filmIdGenerator;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, ValidationFilmService validationFilmService,
+                       GeneratorFilmId filmIdGenerator) {
         this.filmStorage = filmStorage;
+        this.validationFilmService = validationFilmService;
+        this.filmIdGenerator = filmIdGenerator;
     }
 
     public Film addFilm(Film film) {
         log.info("Запрос на создание фильма {} отправлен", film);
         validationFilmService.validateNewFilm(film);
-        film.setId(generatorFilmIdId.generate());
+        film.setId(filmIdGenerator.generate());
         return filmStorage.addFilm(film);
     }
 
@@ -55,7 +58,7 @@ public class FilmService {
         filmStorage.removeLike(filmId, userId);
     }
 
-    public List<Film> getTheMostPopularFilms(long count) {
-        return filmStorage.getTheMostPopularFilms(count);
+    public List<Film> getFilmsSortedByLikes(long count) {
+        return filmStorage.getFilmsSortedByLikes(count);
     }
 }

@@ -61,6 +61,6 @@ public class UserService {
     }
 
     public List<User> showCommonFriends(Long userFirstId, Long userSecondId) {
-       return userStorage.showCommonFriends(userFirstId, userSecondId);
+        return userStorage.showCommonFriends(userFirstId, userSecondId);
     }
 }

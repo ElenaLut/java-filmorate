@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.filmgenre;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -13,12 +14,13 @@ public class FilmGenreStorageImpl implements FilmGenreStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
+    @Autowired
     public FilmGenreStorageImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public LinkedHashSet<Genre> findAllByFilmId(long id) {
+    public Set<Genre> findAllByFilmId(long id) {
         final String query = "SELECT * FROM film_genre JOIN genre  on genre.genre_id = film_genre.genre_id " +
                 "WHERE film_id = ? ORDER BY 1 DESC";
         LinkedHashSet<Genre> genres = new LinkedHashSet<>();

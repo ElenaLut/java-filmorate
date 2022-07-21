@@ -82,12 +82,6 @@ public class UserDbStorage implements UserStorage {
         return users.get(0);
     }
 
-    private void checkUser(long id) {
-        if (getUserById(id) == null) {
-            throw new NotFoundException("Пользователь с id " + id + " не обнаружен");
-        }
-    }
-
     @Override
     public Map<User, FriendsStatus> getUserFriends(long id) {
         checkUser(id);
@@ -182,5 +176,11 @@ public class UserDbStorage implements UserStorage {
         user.setLogin(login);
         user.setBirthday(birthday);
         return user;
+    }
+
+    private void checkUser(long id) {
+        if (getUserById(id) == null) {
+            throw new NotFoundException("Пользователь с id " + id + " не обнаружен");
+        }
     }
 }

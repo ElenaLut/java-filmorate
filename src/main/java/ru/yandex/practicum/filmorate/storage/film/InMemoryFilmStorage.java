@@ -99,7 +99,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getTheMostPopularFilms(long count) {
+    public List<Film> getFilmsSortedByLikes(long count) {
         log.info("Запрос на 10 наиболее популярных фильмов направлен");
         return getAllFilms().stream()
                 .sorted((x, y)

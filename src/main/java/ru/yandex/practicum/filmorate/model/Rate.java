@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Rate {
+
     private int id;
     private String name;
-
-    public Rate (int id) {
-        this.id = id;
-    }
 }
