@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.user.GeneratorUserId;
-import ru.yandex.practicum.filmorate.service.user.ValidationUserService;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
 import java.util.Collection;
@@ -19,6 +16,7 @@ public class FilmService {
 
     private final ValidationFilmService validationFilmService = new ValidationFilmService();
     private final FilmStorage filmStorage;
+
     private GeneratorFilmId generatorFilmIdId = new GeneratorFilmId();
 
     @Autowired

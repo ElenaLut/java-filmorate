@@ -13,7 +13,6 @@ public interface FilmStorage {
 
     Collection<Film> getAllFilms();
 
-
     Film getFilmById(long id);
 
     public void addLike(long filmId, long userId);

@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 @Component
-public class RateStorageImpl implements RateStorage{
+public class RateStorageImpl implements RateStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -27,22 +27,14 @@ public class RateStorageImpl implements RateStorage{
 
     @Override
     public Rate getRateById(int id) throws NotFoundException {
- /*       final String sql = "SELECT * FROM rate where rate_id = ?";
-        return jdbcTemplate.queryForStream(sql, (rs, rowNum) ->
-                new Rate(rs.getInt(1), rs.getString(2)), id).findFirst();
-    }*/
-    final String query = "SELECT * FROM rate WHERE rate_id =  ?";
+        final String query = "SELECT * FROM rate WHERE rate_id =  ?";
         List<Rate> rates = jdbcTemplate.query(query, (rs, rowNum) -> buildRate(rs), id);
         if (rates.isEmpty()) {
             throw new NotFoundException("Такого рейтинга не существует");
         }
-   /* SqlRowSet rs = jdbcTemplate.queryForRowSet(query, id);
-        if (rs.next()) {
-        return Optional.of(new Rate(rs.getInt(1), rs.getString(2)));
-    }
-        return Optional.empty();*/
         return rates.get(0);
-}
+    }
+
     private Rate buildRate(ResultSet resultSet) throws SQLException {
         return new Rate((int) resultSet.getLong("rate_id"),
                 resultSet.getString("rate_type"));

@@ -6,18 +6,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Rate;
 import ru.yandex.practicum.filmorate.storage.filmgenre.FilmGenreStorage;
-import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.rate.RateStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -55,7 +51,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId()
         );
         if (!film.getGenres().isEmpty()) {
-           addFilmGenre(film);
+            addFilmGenre(film);
         }
         if (!film.getLikes().isEmpty()) {
             addFilmLikes(film);
@@ -103,9 +99,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId());
         deleteGenre(film);
         deleteLikes(film);
-       // if (!film.getGenres().isEmpty()) {
-            filmGenreStorage.updateGenresToFilm(film);
-      //  }
+        filmGenreStorage.updateGenresToFilm(film);
         if (!film.getLikes().isEmpty()) {
             addFilmLikes(film);
         }
@@ -120,7 +114,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void deleteLikes(Film film) {
-       checkFilm(film.getId());
+        checkFilm(film.getId());
         String likes = "DELETE FROM film_likes WHERE film_id=?";
         jdbcTemplate.update(likes, film.getId());
     }
@@ -144,18 +138,16 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film getFilmById(long id) throws NotFoundException{
+    public Film getFilmById(long id) throws NotFoundException {
         String query = "SELECT * FROM films WHERE film_id=?";
         List<Film> films = jdbcTemplate.query(query, (rs, rowNum) -> makeFilm(id, rs), id);
         if (films.isEmpty()) {
             throw new NotFoundException("Объекта не существует");
         }
         Film film = films.get(0);
-       // film.setMpa(rateStorage.getRateById(film.getMpa().getId()).get());
-       /* if (films.get(0).getMpa().getId() > 0) {*/
-            if (rateStorage.getRateById(film.getMpa().getId()) != null) {
-                films.get(0).setMpa(rateStorage.getRateById(film.getMpa().getId()));
-            }
+        if (rateStorage.getRateById(film.getMpa().getId()) != null) {
+            films.get(0).setMpa(rateStorage.getRateById(film.getMpa().getId()));
+        }
 
         return film;
     }

@@ -7,11 +7,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Rate;
-import ru.yandex.practicum.filmorate.model.RateName;
 import ru.yandex.practicum.filmorate.service.RateService;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RestController

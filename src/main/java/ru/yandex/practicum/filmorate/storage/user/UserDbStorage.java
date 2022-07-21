@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.FriendsStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -88,9 +87,10 @@ public class UserDbStorage implements UserStorage {
             throw new NotFoundException("Пользователь с id " + id + " не обнаружен");
         }
     }
+
     @Override
     public Map<User, FriendsStatus> getUserFriends(long id) {
-       checkUser(id);
+        checkUser(id);
         String query = "SELECT " +
                 "u.user_id, " +
                 "email, " +

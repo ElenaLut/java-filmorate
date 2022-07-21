@@ -18,9 +18,6 @@ public class InMemoryUserStorage implements UserStorage {
     private final ValidationUserService validationUserService = new ValidationUserService();
     private final Map<Long, User> users = new HashMap<>();
 
-    @Autowired
-    private GeneratorUserId generatorId = new GeneratorUserId();
-
     public Map<Long, User> getUsers() {
         return users;
     }
@@ -82,7 +79,7 @@ public class InMemoryUserStorage implements UserStorage {
         validationUserService.validateUserId(userSecondId);
         userFirst.getFriends().remove(userSecondId);
         userSecond.getFriends().remove(userFirstId);
-       updateUser(userFirst);
+        updateUser(userFirst);
         updateUser(userSecond);
         log.info("Пользователи id={} и id={} удалены из друзей", userFirstId, userSecondId);
     }
