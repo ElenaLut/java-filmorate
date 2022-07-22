@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.service.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
@@ -20,7 +19,7 @@ public class FilmService {
     private GeneratorFilmId filmIdGenerator;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, ValidationFilmService validationFilmService,
+    public FilmService(FilmStorage filmStorage, ValidationFilmService validationFilmService,
                        GeneratorFilmId filmIdGenerator) {
         this.filmStorage = filmStorage;
         this.validationFilmService = validationFilmService;

@@ -54,9 +54,6 @@ public class FilmDbStorage implements FilmStorage {
         if (!film.getGenres().isEmpty()) {
             addFilmGenre(film);
         }
-        if (!film.getLikes().isEmpty()) {
-            addFilmLikes(film);
-        }
         log.info("Добавлен фильм: {}", film);
         return film;
     }
@@ -85,9 +82,6 @@ public class FilmDbStorage implements FilmStorage {
         deleteGenre(film);
         deleteLikes(film);
         filmGenreStorage.updateGenresToFilm(film);
-        if (!film.getLikes().isEmpty()) {
-            addFilmLikes(film);
-        }
         log.info("Фильм изменен: {}", film);
         return film;
     }
@@ -166,14 +160,6 @@ public class FilmDbStorage implements FilmStorage {
         String newGenre = "INSERT INTO film_genre VALUES (?, ?)";
         for (Genre genre : film.getGenres()) {
             jdbcTemplate.update(newGenre, film.getId(), genre.getId());
-        }
-    }
-
-    private void addFilmLikes(Film film) {
-        checkFilm(film.getId());
-        String newFilmLike = "INSERT INTO film_likes VALUES (?, ?)";
-        for (long i : film.getLikes()) {
-            jdbcTemplate.update(newFilmLike, film.getId(), i);
         }
     }
 

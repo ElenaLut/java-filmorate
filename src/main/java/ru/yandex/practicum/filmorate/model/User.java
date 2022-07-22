@@ -14,10 +14,10 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
-    @JsonIgnore
-    private Map<User, FriendsStatus> friends = new HashMap<>();
+   /* @JsonIgnore
+   // private Map<User, FriendsStatus> friends = new HashMap<>();
 
     public void addFriend(User friend, FriendsStatus status) {
         friends.put(friend, status);
-    }
+    }*/
 }
