@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -27,7 +29,7 @@ public class FilmDbStorage implements FilmStorage {
     private final FilmGenreStorage filmGenreStorage;
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, @Qualifier("userDbStorage") UserStorage userStorage,
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, UserStorage userStorage,
                          RateStorage rateStorage, FilmGenreStorage filmGenreStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.userStorage = userStorage;
@@ -37,21 +39,21 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film addFilm(Film film) {
-        if (film == null) {
-            throw new NotFoundException("Запрос пуст");
-        }
-        String newFilm = "INSERT INTO films" +
-                "(film_id, film_name, description, duration, release_date, rate_id) " +
-                "VALUES(?, ?, ?, ?, ?, ?)";
-        jdbcTemplate.update(newFilm,
-                film.getId(),
-                film.getName(),
-                film.getDescription(),
-                film.getDuration(),
-                film.getReleaseDate(),
-                film.getMpa().getId()
-        );
-        if (!film.getGenres().isEmpty()) {
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String newFilm = "INSERT INTO films(film_name, description, duration, release_date, " +
+                "rate_id) VALUES (?, ?, ?, ?, ?)";
+        jdbcTemplate.update(connection -> {
+            PreparedStatement stmt = connection.prepareStatement(newFilm, new String[]{"film_id"});
+            stmt.setString(1, film.getName());
+            stmt.setString(2, film.getDescription());
+            stmt.setLong(3, film.getDuration());
+            stmt.setDate(4, Date.valueOf(film.getReleaseDate()));
+            stmt.setLong(5, film.getMpa().getId());
+            return stmt;
+        }, keyHolder);
+        long filmId = keyHolder.getKey().longValue();
+        film.setId(filmId);
+        if (film.getGenres() != null) {
             addFilmGenre(film);
         }
         log.info("Добавлен фильм: {}", film);
@@ -60,9 +62,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        if (film == null) {
-            throw new NotFoundException("Запрос пуст");
-        }
         checkFilm(film.getId());
         String filmChange = "UPDATE films " +
                 "SET " +
@@ -79,7 +78,7 @@ public class FilmDbStorage implements FilmStorage {
                 film.getReleaseDate(),
                 film.getMpa().getId(),
                 film.getId());
-        deleteGenre(film);
+       // deleteGenre(film);
         deleteLikes(film);
         filmGenreStorage.updateGenresToFilm(film);
         log.info("Фильм изменен: {}", film);
@@ -163,11 +162,11 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private void deleteGenre(Film film) {
+  /*  private void deleteGenre(Film film) {
         checkFilm(film.getId());
         String genre = "DELETE FROM film_genre WHERE film_id=?";
         jdbcTemplate.update(genre, film.getId());
-    }
+    }*/
 
     private void deleteLikes(Film film) {
         checkFilm(film.getId());

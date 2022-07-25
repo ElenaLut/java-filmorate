@@ -16,20 +16,15 @@ public class FilmService {
     private final ValidationFilmService validationFilmService;
     private final FilmStorage filmStorage;
 
-    private GeneratorFilmId filmIdGenerator;
-
     @Autowired
-    public FilmService(FilmStorage filmStorage, ValidationFilmService validationFilmService,
-                       GeneratorFilmId filmIdGenerator) {
+    public FilmService(FilmStorage filmStorage, ValidationFilmService validationFilmService) {
         this.filmStorage = filmStorage;
         this.validationFilmService = validationFilmService;
-        this.filmIdGenerator = filmIdGenerator;
     }
 
     public Film addFilm(Film film) {
         log.info("Запрос на создание фильма {} отправлен", film);
         validationFilmService.validateNewFilm(film);
-        film.setId(filmIdGenerator.generate());
         return filmStorage.addFilm(film);
     }
 

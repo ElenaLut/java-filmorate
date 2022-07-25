@@ -40,14 +40,13 @@ public class FilmGenreStorageImpl implements FilmGenreStorage {
 
     @Override
     public void updateGenresToFilm(Film film) {
-        if (film.getGenres() != null & film.getGenres().isEmpty()) {
+        if (film.getGenres() == null) {
             final String sql = "DELETE FROM film_genre WHERE film_id = ?";
             jdbcTemplate.update(sql, film.getId());
             return;
         }
         final String sql = "DELETE FROM film_genre WHERE film_id = ?";
         jdbcTemplate.update(sql, film.getId());
-
         for (Genre genre : film.getGenres()) {
             addGenreToFilm(film.getId(), genre);
         }

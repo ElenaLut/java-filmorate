@@ -16,8 +16,6 @@ public class UserService {
 
     private final ValidationUserService validationUserService = new ValidationUserService();
     private final UserStorage userStorage;
-    @Autowired
-    private GeneratorUserId generatorId = new GeneratorUserId();
 
     @Autowired
     public UserService(UserStorage userStorage) {
@@ -27,7 +25,6 @@ public class UserService {
     public User addUser(@RequestBody User user) {
         log.info("Запрос на создание пользователя {} отправлен", user);
         validationUserService.validateNewUser(user);
-        user.setId(generatorId.generate());
         return userStorage.addUser(user);
     }
 
