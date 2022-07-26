@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import org.springframework.web.bind.annotation.RequestBody;
+import ru.yandex.practicum.filmorate.model.FriendsStatus;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface UserStorage {
@@ -14,11 +16,13 @@ public interface UserStorage {
 
     Collection<User> getAllUsers();
 
-    Map<Long, User> getUsers();
-
     User getUserById(long id);
 
-    void validateUserId(long id);
+    User addInFriendList(long userFirstId, long userSecondId);
 
-    void validateUniqEmail(User user);
+    void removeFriendList(long userFirstId, long userSecondId);
+
+    List<User> showCommonFriends(Long userFirstId, Long userSecondId);
+
+    Map<User, FriendsStatus> getUserFriends(long id);
 }
