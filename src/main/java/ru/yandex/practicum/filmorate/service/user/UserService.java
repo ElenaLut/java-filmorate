@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.FriendsStatus;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
@@ -29,6 +30,9 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        if (userStorage.getUserById(user.getId()) == null) {
+            throw new NotFoundException("Фильм с id " + user.getId() + " не обнаружен");
+        }
         log.info("Запрос на обновление пользователя {} отправлен", user);
         validationUserService.validateNewUser(user);
         return userStorage.updateUser(user);

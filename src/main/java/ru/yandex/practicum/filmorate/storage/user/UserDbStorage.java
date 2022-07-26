@@ -49,7 +49,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User updateUser(User user) {
-        checkUser(user.getId());
         String userChange = "UPDATE users " +
                 "SET " +
                 "email=?, " +

@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -62,7 +61,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        checkFilm(film.getId());
         String filmChange = "UPDATE films " +
                 "SET " +
                 "film_name=?, " +
@@ -161,12 +159,6 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.update(newGenre, film.getId(), genre.getId());
         }
     }
-
-  /*  private void deleteGenre(Film film) {
-        checkFilm(film.getId());
-        String genre = "DELETE FROM film_genre WHERE film_id=?";
-        jdbcTemplate.update(genre, film.getId());
-    }*/
 
     private void deleteLikes(Film film) {
         checkFilm(film.getId());
